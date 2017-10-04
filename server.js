@@ -1,12 +1,4 @@
-/* Scrape and Display
- * (If you can do this, you should be set for your hw)
- * ================================================== */
 
-// STUDENTS:
-// Please complete the routes with TODOs inside.
-// Your specific instructions lie there
-
-// Good luck!
 
 // Dependencies
 var express = require("express");
@@ -19,6 +11,9 @@ var Article = require("./models/Article.js");
 // Our scraping tools
 var request = require("request");
 var cheerio = require("cheerio");
+
+const MONGODB_URI = process.env.MONGODB_URI;
+
 // Set mongoose to leverage built in JavaScript ES6 Promises
 mongoose.Promise = Promise;
 
