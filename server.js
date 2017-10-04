@@ -12,6 +12,7 @@ var Article = require("./models/Article.js");
 var request = require("request");
 var cheerio = require("cheerio");
 
+const PORT = process.env.PORT || 8000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // Set mongoose to leverage built in JavaScript ES6 Promises
@@ -153,6 +154,6 @@ app.post("/articles/:id", function(req, res) {
 
 
 // Listen on port 3000
-app.listen(3000, function() {
+app.listen(PORT, function() {
   console.log("App running on port 3000!");
 });
