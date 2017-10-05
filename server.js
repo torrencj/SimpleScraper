@@ -13,11 +13,10 @@ var request = require("request");
 var cheerio = require("cheerio");
 
 const PORT = process.env.PORT || 8000;
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/scraper";
 
 // Set mongoose to leverage built in JavaScript ES6 Promises
 mongoose.Promise = Promise;
-
 
 // Initialize Express
 var app = express();
@@ -30,22 +29,19 @@ app.use(bodyParser.urlencoded({
 
 // Make public a static dir
 app.use(express.static("public"));
+var connect = mongoose.connect(MONGODB_URI, { useMongoClient: true });
 
-// Database configuration with mongoose
-// mongoose.connect("mongodb://localhost/week18day3mongoose");
-mongoose.connect(MONGODB_URI)
-var db = mongoose.connection;
+connect.then(function(db) {
+  // Show any mongoose errors
+  db.on("error", function(error) {
+    console.log("Mongoose Error: ", error);
+  });
 
-// Show any mongoose errors
-db.on("error", function(error) {
-  console.log("Mongoose Error: ", error);
-});
-
-// Once logged in to the db through mongoose, log a success message
-db.once("open", function() {
-  console.log("Mongoose connection successful.");
-});
-
+  // Once logged in to the db through mongoose, log a success message
+  db.once("open", function() {
+    console.log("Mongoose connection successful.");
+  });
+})
 
 // Routes
 // ======
@@ -89,8 +85,6 @@ app.get("/scrape", function(req, res) {
 
 // This will get the articles we scraped from the mongoDB
 app.get("/articles", function(req, res) {
-  // console.log(db);
-  // res.end()
   Article.find({}, function(err, data) {
     if (err) {
       console.log(err);
@@ -99,49 +93,34 @@ app.get("/articles", function(req, res) {
       res.json(data);
     }
   })
-
 });
 
 // This will grab an article by it's ObjectId
 app.get("/articles/:id", function(req, res) {
 
   var item = req.params.id;
-
-  Article.findOne({"_id": item}).populate("note").exec( function(err, data) {
+  console.log("something is happening.");
+  Article.findOne({"_id": item}).populate("notes").exec( function(err, data) {
     if (err) {
       console.log(err);
       res.end();
     } else {
+      console.log(data);
       res.json(data);
     }
   })
-
 });
 
 // Create a new note or replace an existing note
 app.post("/articles/:id", function(req, res) {
-
   var id = req.params.id;
   var note = req.body
-
-  // Article.update({"_id": item}, {"note": note}, function(err, data) {
-  //   if (err) console.log(err);
-  //   res.send(data);
-  // });
   Note.create(req.body, function(err, data) {
     if (err) console.log(err)
-    Article.update({_id:id}, {note: data._id}, function(err) {
+    Article.update({_id:id}, {$push: {notes: data._id} }, function(err) {
       if (err) console.log(err)
     })
   })
-  // Article.findById(id, function (err, article) {
-  //   if (err) return handleError(err);
-  //
-  //   article.note = ;
-  //   article.save(function (err, data) {
-  //   if (err) console.log(err);
-  //   res.send(data);
-  // });
 });
 
   // save the new note that gets posted to the Notes collection
