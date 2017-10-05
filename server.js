@@ -97,9 +97,7 @@ app.get("/articles", function(req, res) {
 
 // This will grab an article by it's ObjectId
 app.get("/articles/:id", function(req, res) {
-
   var item = req.params.id;
-  console.log("something is happening.");
   Article.findOne({"_id": item}).populate("notes").exec( function(err, data) {
     if (err) {
       console.log(err);
@@ -119,9 +117,19 @@ app.post("/articles/:id", function(req, res) {
     if (err) console.log(err)
     Article.update({_id:id}, {$push: {notes: data._id} }, function(err) {
       if (err) console.log(err)
-    })
-  })
+      res.end();
+    });
+  });
 });
+
+app.delete("/notes/:id", function(req, res) {
+  console.log(req.params.id);
+  var id = req.params.id;
+  Note.findByIdAndRemove(id, function(err){
+    if (err) console.log(err);
+    res.end();
+  });
+})
 
   // save the new note that gets posted to the Notes collection
 

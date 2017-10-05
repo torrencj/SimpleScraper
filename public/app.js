@@ -17,11 +17,11 @@ return `<div class="article" >
 }
 
 function generateNoteHTML(note) {
-  return `<div class="note">
+  return `<div class="note" id="${note._id}">
     <p><strong>${note.title}</strong></p>
     <p>${note.body}</p>
     <p>Created at ${note.createdAt}</p>
-    <button>Delete</button>
+    <button class="delete-btn" note-id="${note._id}" >Delete</button>
   </div>`
 }
 
@@ -34,6 +34,7 @@ $.getJSON("/articles", function(data) {
   }
 });
 
+// Scrape the site when you click.
 $(document).on("click", "#scrape-btn", function() {
   $.get("/scrape", data => {
     console.log(data);
@@ -41,7 +42,7 @@ $(document).on("click", "#scrape-btn", function() {
 });
 
 
-// Whenever someone clicks a p tag
+// Whenever someone clicks a comment class
 $(document).on("click", ".comment", function() {
   // Empty the notes from the note section
   $("#notes").empty();
@@ -64,8 +65,6 @@ $(document).on("click", ".comment", function() {
         data.notes.forEach(elem => {
           $("#notes").append(generateNoteHTML(elem))
         });
-      } else {
-        console.log("nope.");
       }
 
       // An input to enter a new title
@@ -75,6 +74,16 @@ $(document).on("click", ".comment", function() {
       // A button to submit a new note, with the id of the article saved to it
       $("#notes").append("<button data-id='" + data._id + "' id='savenote'>New Comment</button>");
     });
+});
+
+// Attach event handlers to the comment delete buttonlist
+$(document).on("click", '.delete-btn', function(){
+  var thisId = $(this).attr("note-id")
+  $(`#${thisId}`).empty();
+  $.ajax({
+    method: "DELETE",
+    url: "/notes/" + thisId
+  });
 });
 
 // When you click the savenote button
@@ -87,9 +96,7 @@ $(document).on("click", "#savenote", function() {
     method: "POST",
     url: "/articles/" + thisId,
     data: {
-      // Value taken from title input
       title: $("#titleinput").val(),
-      // Value taken from note textarea
       body: $("#bodyinput").val()
     }
   })
